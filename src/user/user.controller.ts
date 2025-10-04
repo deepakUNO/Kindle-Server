@@ -32,7 +32,7 @@ export class UserController {
     @Post('login')
     async login(@Body() user: loginUserDto, @Res({ passthrough: true }) res: Response): Promise<User> {
         const existing = await this.userService.signIn(user);
-        const jwtExpires = process.env.JWT_EXPIRES_IN ?? '1h';
+        const jwtExpires = process.env.JWT_EXPIRES_IN ?? '1d';
         const parseExpirySeconds = (s: string) => {
             const m = s.match(/^(\d+)([smh])?$/);
             if (!m) return 3600;

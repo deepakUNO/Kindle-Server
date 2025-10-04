@@ -71,4 +71,6 @@ export class UserService {
     async myProfile(authToken: string): Promise<User | null> {
         return this.validateAuthToken(authToken);
     }
+
+    
 }
