@@ -1,0 +1,4 @@
+nest new ./
+nest g module module_name
+nest g controller controller_name
+nest g service Service_name --no-spec
