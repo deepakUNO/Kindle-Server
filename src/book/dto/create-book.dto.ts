@@ -1,5 +1,6 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { Category } from "../schemas/book.schema";
+import mongoose from "mongoose";
 
 
 export class CreateBookDto {
@@ -7,9 +8,10 @@ export class CreateBookDto {
     @IsString()
     readonly title: string;
 
-    @IsOptional()
-    @IsNotEmpty()
-    readonly author: string;
+    
+    // @IsNotEmpty()
+    // @IsMongoId()
+    // readonly author: mongoose.Types.ObjectId;
 
     @IsOptional()
     @IsNotEmpty()

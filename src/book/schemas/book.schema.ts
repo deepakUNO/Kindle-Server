@@ -29,7 +29,7 @@ export class Book {
     @Prop({ type: String, required: true })
     title: string;
 
-    @Prop()
+    @Prop({required:true, ref: 'Author' })
     author: mongoose.Types.ObjectId;
 
     @Prop({ type: String, default: "No description available" })

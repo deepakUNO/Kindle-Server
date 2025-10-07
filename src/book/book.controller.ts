@@ -1,8 +1,11 @@
-import { Body, Controller, Delete, Get, HttpException, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { CreateBookDto } from './dto/create-book.dto';
 import { BookService } from './book.service';
 import { Book } from './schemas/book.schema';
-import mongoose from 'mongoose';
+import mongoose, { Mongoose } from 'mongoose';
+import { JwtAuthGuard } from 'src/user/jwt-auth.guard';
+import { CurrentUser } from 'src/user/current-user.decorator';
+import { User } from 'src/user/schemas/user.schema';
 
 @Controller('books')
 export class BookController {
@@ -17,8 +20,10 @@ export class BookController {
     }
 
     @Post()
-    async createBook(@Body() book: CreateBookDto): Promise<Book> {
-        return this.bookService.create(book);
+    @UseGuards(JwtAuthGuard)
+    async createBook(@Body() book: CreateBookDto, @CurrentUser() user: User): Promise<Book> {
+        const payload = { ...book, author: (user as any)._id };
+        return this.bookService.create(payload as any);
     }
     @Get('id/:id')
     async getBookById(@Param('id') id: string): Promise<Book | null> {
@@ -26,6 +31,15 @@ export class BookController {
             throw new HttpException('Invalid book ID', 400);
         }
         return this.bookService.findBookById(id);
+    }
+
+    @Get('author')
+    async getBooksByAuthor(@Param('authorId') authorId: string): Promise<Book[]> {
+        console.log('Author ID:', authorId); // Debugging line
+        // if (!mongoose.Types.ObjectId.isValid(authorId)) {
+        //     throw new HttpException('Invalid author ID', 400);
+        // }
+        return this.bookService.findBooksByAuthor(authorId);
     }
 
     @Patch(':id')

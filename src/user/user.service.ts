@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/createUser.dto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import { loginUserDto } from './dto/loginUser.dto';
 
 @Injectable()
@@ -72,5 +73,14 @@ export class UserService {
         return this.validateAuthToken(authToken);
     }
 
-    
+    // add a book id to the author's authorOfBooks array
+    async addBookToAuthor(authorId: string, bookId: string): Promise<User | null> {
+        if (!mongoose.Types.ObjectId.isValid(authorId)) {
+            throw new BadRequestException('Invalid author id');
+        }
+        const updated = await this.userModel.findByIdAndUpdate(authorId, { $addToSet: { authorOfBooks: bookId } }, { new: true });
+        return updated;
+    }
+
+
 }

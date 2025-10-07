@@ -1,13 +1,15 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Book } from './schemas/book.schema';
-import { Model } from 'mongoose';
+import mongoose, { Model, mongo } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateBookDto } from './dto/create-book.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class BookService {
     constructor(
-        @InjectModel(Book.name) private bookModel: Model<Book>
+        @InjectModel(Book.name) private bookModel: Model<Book>,
+        private userService: UserService,
     ) { }
     async findAll(): Promise<Book[]> {
         const books = await this.bookModel.find();
@@ -35,11 +37,28 @@ export class BookService {
 
         return this.bookModel.find(q).skip(skip).limit(limitNum).exec();
     }
+    async findBooksByAuthor(authorId: string): Promise<Book[]> {
+        // if (!mongoose.Types.ObjectId.isValid(authorId)) {
+        //     throw new BadRequestException('Invalid author ID');
+        // }
+        return this.bookModel.find({ author: authorId });
+    }
 
     async create(book: CreateBookDto): Promise<Book> {
         const newBook = new this.bookModel(book);
         try {
-            return await newBook.save();
+            const saved = await newBook.save();
+            // if author is provided, add this book id to the author's authorOfBooks array
+            try {
+                const authorId = (book as any).author;
+                if (authorId) {
+                    await this.userService.addBookToAuthor(authorId.toString(), saved._id.toString());
+                }
+            } catch (e) {
+                // non-fatal: if updating the user fails, we still return the created book
+                console.warn('Failed to add book to author profile:', e?.message ?? e);
+            }
+            return saved;
         } catch (err) {
             // convert Mongoose validation errors to HTTP 400
             if (err?.name === 'ValidationError' || err?.name === 'MongoServerError') {
