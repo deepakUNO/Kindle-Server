@@ -50,6 +50,12 @@ export class UserService {
         await existingUser.save();
         return existingUser;
     }
+    async removeBookFromAuthors(bookId: string, authorId: mongoose.Types.ObjectId): Promise<void> {
+        await this.userModel.updateOne(
+            { _id: authorId },
+            { $pull: { authorOfBooks: bookId } }
+        );
+    }
 
     // validate a JWT and ensure it matches the stored token on the user
     async validateAuthToken(authToken: string): Promise<User> {

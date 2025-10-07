@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Book } from './schemas/book.schema';
 import mongoose, { Model, mongo } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -86,11 +86,36 @@ export class BookService {
         }
         return updatedBook;
     }
-    async deleteBookById(id: string): Promise<Book | null> {
+    async deleteBookById(id: string, requestingUserId?: string): Promise<{ deletedBook: Book | null; message: string }> {
+        const book = await this.findBookById(id);
+        if (!book) {
+            throw new NotFoundException('Book not found');
+        }
+
+        // enforce that only the author can delete
+        if (requestingUserId) {
+            const bookAuthorId = (book.author as any)?._id ? (book.author as any)._id.toString() : book.author?.toString();
+            if (bookAuthorId !== requestingUserId) {
+                throw new ForbiddenException('Only the author can delete this book');
+            }
+        }
+
         const deletedBook = await this.bookModel.findByIdAndDelete(id);
+
         if (!deletedBook) {
             throw new NotFoundException('Book not found');
         }
-        return deletedBook;
+
+        // remove book reference from author's authorOfBooks
+        try {
+            const authorId = (deletedBook.author as any)?._id ? (deletedBook.author as any)._id : deletedBook.author;
+            if (authorId) {
+                await this.userService.removeBookFromAuthors(deletedBook._id.toString(), authorId as any);
+            }
+        } catch (e) {
+            console.warn('Failed to remove book from author profile:', e?.message ?? e);
+        }
+
+        return { deletedBook, message: 'Book successfully deleted' };
     }
 }

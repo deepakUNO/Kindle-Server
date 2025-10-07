@@ -50,10 +50,11 @@ export class BookController {
         return this.bookService.updateBookById(id, book);
     }
     @Delete(':id')
-    async deleteBookById(@Param('id') id: string): Promise<Book | null> {
+    @UseGuards(JwtAuthGuard)
+    async deleteBookById(@Param('id') id: string, @CurrentUser() user: User): Promise<{ deletedBook: Book | null; message: string }> {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new HttpException('Invalid book ID', 400);
         }
-        return this.bookService.deleteBookById(id);
+        return this.bookService.deleteBookById(id, (user as any)._id?.toString());
     }
 }
