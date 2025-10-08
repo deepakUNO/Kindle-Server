@@ -5,11 +5,15 @@ import type { Response } from 'express';
 import { loginUserDto } from './dto/loginUser.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentUser } from './current-user.decorator';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('user')
 @Controller('user')
 export class UserController {
     constructor(private userService: UserService) { }
     @Post('register')
+    @ApiOperation({ summary: 'Register new user' })
+    @ApiResponse({ status: 201, description: 'User created' })
     async register(@Body() user: any, @Res({ passthrough: true }) res: Response): Promise<User> {
         const created = await this.userService.register(user);
         // set HTTP-only cookie with the auth token and expiry matching JWT
@@ -30,6 +34,8 @@ export class UserController {
     }
 
     @Post('login')
+    @ApiOperation({ summary: 'Login user' })
+    @ApiResponse({ status: 200, description: 'User logged in' })
     async login(@Body() user: loginUserDto, @Res({ passthrough: true }) res: Response): Promise<User> {
         const existing = await this.userService.signIn(user);
         const jwtExpires = process.env.JWT_EXPIRES_IN ?? '1d';
@@ -49,6 +55,8 @@ export class UserController {
 
     @Get('myProfile')
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get my profile' })
     async myProfile(@CurrentUser() user: User): Promise<User | null> {
         return user;
     }

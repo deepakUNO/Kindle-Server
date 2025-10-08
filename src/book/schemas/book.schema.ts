@@ -29,7 +29,8 @@ export class Book {
     @Prop({ type: String, required: true })
     title: string;
 
-    @Prop({required:true, ref: 'Author' })
+    // ref should point to the User model name so Mongoose population works
+    @Prop({ required: true, ref: 'User' })
     author: mongoose.Types.ObjectId;
 
     @Prop({ type: String, default: "No description available" })

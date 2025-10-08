@@ -37,11 +37,13 @@ export class BookService {
 
         return this.bookModel.find(q).skip(skip).limit(limitNum).exec();
     }
-    async findBooksByAuthor(authorId: string): Promise<Book[]> {
-        // if (!mongoose.Types.ObjectId.isValid(authorId)) {
-        //     throw new BadRequestException('Invalid author ID');
-        // }
-        return this.bookModel.find({ author: authorId });
+    async findBooksByAuthor(authorId: string | mongoose.Types.ObjectId): Promise<Book[]> {
+        const idStr = typeof authorId === 'string' ? authorId : authorId?.toString();
+        if (!mongoose.Types.ObjectId.isValid(idStr)) {
+            throw new BadRequestException('Invalid author ID');
+        }
+        const objId = new mongoose.Types.ObjectId(idStr);
+        return this.bookModel.find({ author: objId }).exec();
     }
 
     async create(book: CreateBookDto): Promise<Book> {
