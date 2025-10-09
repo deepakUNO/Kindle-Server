@@ -6,7 +6,8 @@ import mongoose, { Mongoose } from 'mongoose';
 import { JwtAuthGuard } from 'src/user/jwt-auth.guard';
 import { CurrentUser } from 'src/user/current-user.decorator';
 import { User } from 'src/user/schemas/user.schema';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiBody } from '@nestjs/swagger';
+import { BookResponseDto } from './dto/book-response.dto';
 
 @ApiTags('books')
 @Controller('books')
@@ -14,7 +15,7 @@ export class BookController {
     constructor(private bookService: BookService) { }
     @Get()
     @ApiOperation({ summary: 'Get all books' })
-    @ApiResponse({ status: 200, description: 'List of books' })
+    @ApiResponse({ status: 200, description: 'List of books', type: BookResponseDto, isArray: true })
     async getAllBooks(): Promise<Book[]> {
         return this.bookService.findAll();
     }
@@ -35,9 +36,32 @@ export class BookController {
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Create a book' })
-    @ApiResponse({ status: 201, description: 'Book created' })
+    @ApiBody({ type: CreateBookDto })
+    @ApiResponse({
+        status: 201,
+        description: 'Book created',
+        type: BookResponseDto,
+        schema: {
+            example: {
+                _id: '64b8f9a0e4b0c1a234567890',
+                title: 'The Great Gatsby',
+                author: '68e4db1bd021522309fb7c8c',
+                authorName: 'johndoe',
+                description: 'A classic novel',
+                price: 19.99,
+                category: 'Adventure',
+                thumbnailUrl: 'http://example.com/thumbnail.jpg',
+                rating: 4.5,
+                ratingsCount: 12,
+                purchaseCount: 123,
+                reviewCount: 5,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            },
+        },
+    })
     async createBook(@Body() book: CreateBookDto, @CurrentUser() user: User): Promise<Book> {
-        const payload = { ...book, author: (user as any)._id };
+        const payload = { ...book, author: (user as any)._id, authorName: (user as any).userName };
         return this.bookService.create(payload as any);
     }
     @Get('id/:id')

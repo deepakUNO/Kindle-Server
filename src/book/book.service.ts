@@ -53,6 +53,7 @@ export class BookService {
             // if author is provided, add this book id to the author's authorOfBooks array
             try {
                 const authorId = (book as any).author;
+                
                 if (authorId) {
                     await this.userService.addBookToAuthor(authorId.toString(), saved._id.toString());
                 }

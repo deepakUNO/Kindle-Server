@@ -33,6 +33,9 @@ export class Book {
     @Prop({ required: true, ref: 'User' })
     author: mongoose.Types.ObjectId;
 
+    @Prop({ type: String, required: true })
+    authorName: string;
+
     @Prop({ type: String, default: "No description available" })
     description: string;
 
@@ -41,5 +44,18 @@ export class Book {
 
     @Prop({ type: String, enum: Category, default: Category.CLASSICS })
     category: Category;
+    @Prop({ type: Number, min: 0, max: 5, default: 0 })
+    rating?: number;
+
+    @Prop({ type: Number, default: 0 })
+    ratingsCount?: number;
+    @Prop({ type: Number, default: 0 })
+    purchaseCount?: number;
+
+    @Prop({ type: Number, default: 0 })
+    reviewCount?: number;
+
+    @Prop({ type: String })
+    thumbnailUrl?: string;
 };
 export const BookSchema = SchemaFactory.createForClass(Book);

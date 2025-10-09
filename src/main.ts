@@ -6,6 +6,7 @@ import express from 'express';
 
 import { LoggingMiddleware } from './logging.middleware';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { BookResponseDto } from './book/dto/book-response.dto';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,7 +25,9 @@ async function bootstrap() {
     // add bearer auth so Swagger UI shows the lock and knows the scheme
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearer')
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    extraModels: [BookResponseDto],
+  });
   SwaggerModule.setup('api-docs', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
